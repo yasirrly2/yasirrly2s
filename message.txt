@@ -1,0 +1,253 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Name Here | Hub",
+   LoadingTitle = "Yasir| Hub",
+   LoadingSubtitle = "by Yasir",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "Yasir hub"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "https://discord.gg/M87YYup7Ke",
+      RememberJoins = true
+   },
+   KeySystem = true,
+   KeySettings = {
+      Title = "Key | Nil Hub",
+      Subtitle = "Key System",
+      Note = "Key is Key123ong",
+      FileName = "Key123ong",
+      SaveKey = false,
+      GrabKeyFromSite = true,
+      Key = {"Key123ong"}
+   }
+})
+
+local MainTab = Window:CreateTab("🏠 Home", nil)
+local MainSection = MainTab:CreateSection("Main")
+
+Rayfield:Notify({
+   Title = "You executed the script.... no diddy I swear",
+   Content = "Welcome Little boy!",
+   Duration = 5,
+   Image = 13047715178,
+   Actions = {
+      Ignore = {
+         Name = "Okay!",
+         Callback = function()
+            print("The user tapped Okay!")
+         end
+      },
+   },
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Infinite Jump Toggle, if it doesn't work womp womp",
+   Callback = function()
+      _G.infinjump = not _G.infinjump
+
+      if _G.infinJumpStarted == nil then
+         _G.infinJumpStarted = true
+         game.StarterGui:SetCore("SendNotification", {Title="Yasir Hub"; Text="Infinite Jump Activated!"; Duration=5;})
+
+         local plr = game:GetService('Players').LocalPlayer
+         local m = plr:GetMouse()
+         m.KeyDown:Connect(function(k)
+            if _G.infinjump and k:byte() == 32 then
+               local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+               if humanoid then
+                  humanoid:ChangeState('Jumping')
+                  wait()
+                  humanoid:ChangeState('Seated')
+               end
+            end
+         end)
+      end
+   end,
+})
+
+local WalkSpeedSlider = MainTab:CreateSlider({
+   Name = "WalkSpeed Slider",
+   Range = {1, 2000},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderws",
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end,
+})
+
+local JumpPowerSlider = MainTab:CreateSlider({
+   Name = "JumpPower Slider",
+   Range = {1, 3500},
+   Increment = 1,
+   Suffix = "Power",
+   CurrentValue = 16,
+   Flag = "sliderjp",
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+   end,
+})
+
+local Input = MainTab:CreateInput({
+   Name = "Walkspeed",
+   PlaceholderText = "1-2000",
+   RemoveTextAfterFocusLost = true,
+   Callback = function(Text)
+      local speed = tonumber(Text)
+      if speed then
+         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+      end
+   end,
+})
+
+local OtherSection = MainTab:CreateSection("Extra")
+local Dropdown = MainTab:CreateDropdown({
+   Name = "Select Area",
+   Options = {"None"},
+   CurrentOption = "Select World",
+   MultipleOptions = false,
+   Flag = "dropdownarea",
+   Callback = function(Option)
+      print(Option)
+   end,
+})
+
+local EspButton = MainTab:CreateButton({
+   Name = "Esp Players Toggle",
+   Callback = function()
+      _G.espEnabled = not _G.espEnabled
+
+      if _G.espEnabled then
+         game.StarterGui:SetCore("SendNotification", {Title="Nil Hub"; Text="ESP Players Activated!"; Duration=5;})
+
+         local function createESP(player)
+            if player.Character then
+               if player.Character:FindFirstChild("ESP_Highlight") then
+                  player.Character.ESP_Highlight:Destroy()
+               end
+
+               local highlight = Instance.new("Highlight")
+               highlight.Parent = player.Character
+               highlight.Adornee = player.Character
+               highlight.FillColor = Color3.new(1, 0, 0) -- Red color for the fill
+               highlight.OutlineColor = Color3.new(1, 1, 1) -- White outline
+               highlight.FillTransparency = 0.5 -- Semi-transparent fill
+               highlight.OutlineTransparency = 0 -- Fully visible outline
+               highlight.Name = "ESP_Highlight"
+            end
+         end
+
+         -- Add ESP to existing players
+         for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+               createESP(player)
+            end
+         end
+
+         -- Handle new players joining
+         game.Players.PlayerAdded:Connect(function(player)
+            player.CharacterAdded:Connect(function()
+               createESP(player)
+            end)
+         end)
+
+         _G.espDisconnect = game:GetService("RunService").RenderStepped:Connect(function()
+            if not _G.espEnabled then
+               for _, player in pairs(game.Players:GetPlayers()) do
+                  if player.Character and player.Character:FindFirstChild("ESP_Highlight") then
+                     player.Character.ESP_Highlight:Destroy()
+                  end
+               end
+               if _G.espDisconnect then
+                  _G.espDisconnect:Disconnect()
+                  _G.espDisconnect = nil
+               end
+            end
+         end)
+      else
+         -- Remove all existing ESP highlights
+         for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("ESP_Highlight") then
+               player.Character.ESP_Highlight:Destroy()
+            end
+         end
+      end
+   end,
+})
+
+local OtherSection = MainTab:CreateSection("Players Teleport")
+local Players = game:GetService("Players")
+local playerNames = {"None"} 
+local selectedPlayer = nil
+local teleporting = false
+local teleportConnection = nil
+
+local Dropdown = MainTab:CreateDropdown({
+   Name = "Teleport To Players",
+   Options = playerNames,
+   CurrentOption = "Select Plr",
+   MultipleOptions = false,
+   Flag = "dropdownarea",
+   Callback = function(Option)
+      if Option == "None" then
+         teleporting = false
+         selectedPlayer = nil
+         if teleportConnection then
+            teleportConnection:Disconnect()
+            teleportConnection = nil
+         end
+      else
+         -- Start teleporting to selected player
+         selectedPlayer = Players:FindFirstChild(Option)
+         if selectedPlayer then
+            teleporting = true
+
+            if teleportConnection then
+               teleportConnection:Disconnect()
+            end
+
+            teleportConnection = game:GetService("RunService").RenderStepped:Connect(function()
+               if teleporting and selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                  local targetPosition = selectedPlayer.Character.HumanoidRootPart.Position
+                  local localPlayer = Players.LocalPlayer
+                  if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                     -- Set local player's position to target's position
+                     localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+                  else
+                     print("Local player's HumanoidRootPart not found")
+                  end
+               else
+                  print("Target player's HumanoidRootPart not found or teleporting disabled, sorry bro.")
+               end
+            end)
+         else
+            print("Selected player not found")
+         end
+      end
+   end,
+})
+
+local function refreshPlayerDropdown()
+   playerNames = {"None"} 
+
+   -- Collect current player names
+   for _, player in ipairs(Players:GetPlayers()) do
+      table.insert(playerNames, player.Name)
+   end
+
+   if Dropdown and Dropdown.Refresh then
+      Dropdown:Refresh(playerNames, "None")
+   end
+end
+
+refreshPlayerDropdown()
+
+Players.PlayerAdded:Connect(refreshPlayerDropdown)
+Players.PlayerRemoving:Connect(refreshPlayerDropdown)
+
+local TPTab = Window:CreateTab("🎲 Misc for people with functioning brains.", nil)
